@@ -13,6 +13,7 @@ def jeu_en_cours(caisses, cibles)->bool:
     :param cibles: La liste des cibles du niveau en cours
     :return: True si la partie est finie, False sinon
     '''
+    if caisses 
     pass
 
 
@@ -34,8 +35,20 @@ def charger_niveau(joueur, caisses, cibles, murs, path):
         mx = file_level.readlines()            
         mx = [row.rstrip('\n') for row in mx]  
 
+    # Recherche les differents éléments dans la matrice et crée l'image correspondante sur le board selon les fonctions outils données
+    for i in range(mx):
+        for j in range(mx[i]):
+            if mx[i][j] == '#': # Murs
+                creer_mur(i,j)
+            elif mx[i][j] == '-': #Case_vide
+                creer_case_vide(i,j)
+            elif mx[i][j] == '.': # Cible
+                creer_cible(i,j)
+            elif mx[i][j] == '$':   # Caisse
+                creer_caisse(i,j)
+            elif mx[i][j] == '@':   # Personnage
+                creer_personnage(i,j)
 
-    pass
 
 
 def mouvement(direction, can, joueur, murs, caisses, liste_image):
@@ -138,10 +151,14 @@ if __name__ == '__main__':
     os.system("fourni\simulateur.py")
 
     num_level: int = random.randint(1,4)
-# Code Solution complète                        
-# level_path = './pycrate_heg/niveaux/level' + str(num_level) + '.txt' 
-                                          
-# Debug: utilisation de fichier 1                       
-level_path = './pycrate_heg/niveaux/level1.txt'
+
+    # DEBUG: utilisation de fichier 1                       
+    # level_path = './pycrate_heg/niveaux/level' + str(num_level) + '.txt' 
+    level_path = './pycrate_heg/niveaux/level1.txt'                      
+
+
+    charger_niveau(joueur, caisses, cibles, murs, level_path)
+
+
 
 
