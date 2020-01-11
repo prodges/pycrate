@@ -27,6 +27,14 @@ def charger_niveau(joueur, caisses, cibles, murs, path):
     :param path: Chemin du fichier.txt
     :return:
     '''
+
+    # Lecture des lignes du fichier et stockage dans une matrice 2D x:y telle que 9:6 
+    mx[]
+    with open(level_path, 'r') as file_level:  
+        mx = file_level.readlines()            
+        mx = [row.rstrip('\n') for row in mx]  
+
+
     pass
 
 
@@ -128,3 +136,12 @@ Y_PREMIERE_CASE = 20
 # Ne pas modifier !
 if __name__ == '__main__':
     os.system("fourni\simulateur.py")
+
+    num_level: int = random.randint(1,4)
+# Code Solution complète                        
+# level_path = './pycrate_heg/niveaux/level' + str(num_level) + '.txt' 
+                                          
+# Debug: utilisation de fichier 1                       
+level_path = './pycrate_heg/niveaux/level1.txt'
+
+
