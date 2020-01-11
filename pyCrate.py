@@ -13,7 +13,9 @@ def jeu_en_cours(caisses, cibles)->bool:
     :param cibles: La liste des cibles du niveau en cours
     :return: True si la partie est finie, False sinon
     '''
-    if caisses 
+    if caisses in cibles:
+        return True
+    return False
     pass
 
 
@@ -29,25 +31,30 @@ def charger_niveau(joueur, caisses, cibles, murs, path):
     :return:
     '''
 
+    # DEBUG: utilisation de fichier 1
+    path = './niveaux/level1.txt'
+
     # Lecture des lignes du fichier et stockage dans une matrice 2D x:y telle que 9:6 
-    mx[]
-    with open(level_path, 'r') as file_level:  
+    mx = []
+    cases_vides = []
+
+    with open(path, 'r') as file_level:
         mx = file_level.readlines()            
         mx = [row.rstrip('\n') for row in mx]  
 
     # Recherche les differents éléments dans la matrice et crée l'image correspondante sur le board selon les fonctions outils données
-    for i in range(mx):
-        for j in range(mx[i]):
-            if mx[i][j] == '#': # Murs
-                creer_mur(i,j)
-            elif mx[i][j] == '-': #Case_vide
-                creer_case_vide(i,j)
+    for i in range(0, len(mx)):
+        for j in range(0, len(mx[i])):
+            if mx[i][j] == '#': # Mur
+                murs.append(creer_mur(i,j))
+            elif mx[i][j] == '-': # Case_vide
+                cases_vides.append(creer_case_vide(i,j))
             elif mx[i][j] == '.': # Cible
-                creer_cible(i,j)
+                cibles.append(creer_cible(i,j))
             elif mx[i][j] == '$':   # Caisse
-                creer_caisse(i,j)
+                caisses.append(creer_caisse(i,j))
             elif mx[i][j] == '@':   # Personnage
-                creer_personnage(i,j)
+                joueur.append(creer_personnage(i,j))
 
 
 
@@ -63,6 +70,10 @@ def mouvement(direction, can, joueur, murs, caisses, liste_image):
     :param liste_image: liste des images (murs, caisses etc...) détaillée dans l'énoncé
     :return:
     '''
+
+
+
+
     pass
 
 
@@ -149,15 +160,6 @@ Y_PREMIERE_CASE = 20
 # Ne pas modifier !
 if __name__ == '__main__':
     os.system("fourni\simulateur.py")
-
-    num_level: int = random.randint(1,4)
-
-    # DEBUG: utilisation de fichier 1                       
-    # level_path = './pycrate_heg/niveaux/level' + str(num_level) + '.txt' 
-    level_path = './pycrate_heg/niveaux/level1.txt'                      
-
-
-    charger_niveau(joueur, caisses, cibles, murs, level_path)
 
 
 
