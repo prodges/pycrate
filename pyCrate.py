@@ -1,6 +1,6 @@
 import time
 
-from fourni import simulateur
+#from fourni import simulateur
 from outils import \
     creer_image, \
     creer_caisse, creer_case_vide, creer_cible, creer_mur, creer_personnage, \
@@ -220,4 +220,6 @@ def update_score_file(scores_file_path: str, dict_scores: dict):
 
 
 if __name__ == '__main__':
-    simulateur.simulate()
+    #simulateur.simulate()
+    os.system("fourni\simulateur.py")
+    
