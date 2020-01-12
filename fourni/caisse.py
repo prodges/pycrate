@@ -1,15 +1,12 @@
-class Caisse:
-    def __init__(self,x,y):
-        self.x = x
-        self.y = y
+from .actor import Actor
 
-    def get_x(self):
-        return self.x
 
-    def get_y(self):
-        return self.y
+class Caisse(Actor):
+    def __init__(self, x: int, y: int):
+        super().__init__(x, y)
 
-    def __eq__(self, other):
-        if (self.x == other.x) and (self.y == other.y):
-            return True
-        return False
+    def __eq__(self, other: object) -> bool:
+        return (self.x == other.x) and (self.y == other.y)
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)

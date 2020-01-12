@@ -1,204 +1,253 @@
-from tkinter import *
-from os import listdir
+import os
 import time
+from tkinter import Tk, Canvas, Label, Menu, PhotoImage, Toplevel, Button, LEFT, ALL
+
 import pyCrate
 
-level_folder_path = '.\\niveaux'
-scores_file_path = '.\\scores\\scores.txt'
-joueur = []
-caisses = []
-cibles = []
-murs = []
-liste_image = []
-nb_coups = 0
-started: bool = False
-can = None
-nb_file = 1
-DISTANCE_ENTRE_CASE = 32  # distance par rapport à l'autre case
-score_start = False
-SCORE_BASE = 10000
-niveau_en_cours = 0
-temps_initial = 0
-dict_scores = {}
+# DISTANCE_ENTRE_CASE: int = 32  # distance par rapport à l'autre case
+SCORE_BASE: int = 10000
+LEVEL_FOLDER_PATH: str = os.path.abspath("./niveaux")
+SCORE_FILE_PATH: str = os.path.abspath("./scores/scores.txt")
 
 
-# fonction qui ferme l'application
-def quitter(fenetre):
+class Jeu:
+    def __init__(self):
+        self.nb_coups: int = 0
+        self.started: bool = False
+        self.score_start: bool = False
+        self.niveau_en_cours: int = None
+        self.temps_initial: float = 0
+
+        self.nb_file: int = 1
+
+        self.joueur: list = []
+        self.caisses: list = []
+        self.cibles: list = []
+        self.murs: list = []
+
+        self.liste_image: list = []
+
+        self.dict_scores: dict = {}
+        self.can: Canvas = None
+        self.score_label: Label = None
+
+    def refresh(self):
+        self.joueur: list = []
+        self.caisses: list = []
+        self.cibles: list = []
+        self.murs: list = []
+
+        self.nb_coups: int = 0
+        self.started: bool = False
+        self.score_start: bool = False
+        self.niveau_en_cours: int = None
+        self.temps_initial: float = 0
+
+
+def quitter(fenetre: Tk):
+    """
+    fonction qui ferme l'application
+    :param fenetre:
+    :return:
+    """
     fenetre.quit()
     fenetre.destroy()
 
 
-# fonction qui utilise le fichier texte du nom nivo1.txt, pour
-# creer la liste ch du niveau 1
-
-
-def affichage_jeu(can, liste_image):
-    for j in murs:
-        pyCrate.creer_image(can, j.get_x(), j.get_y(), liste_image[0])
-    for j in cibles:
-        pyCrate.creer_image(can, j.get_x(), j.get_y(), liste_image[1])
-    for j in caisses:
-        pyCrate.creer_image(can, j.get_x(), j.get_y(), liste_image[2])
-        for c in cibles:
-            if j.__eq__(c):
-                pyCrate.creer_image(can, j.get_x(), j.get_y(), liste_image[3])
-    for j in joueur:
-        pyCrate.creer_image(can, j.get_x(), j.get_y(), liste_image[4])
-        for c in cibles:
+def affichage_jeu(jeu: Jeu):
+    """
+    fonction qui utilise le fichier texte du nom nivo1.txt, pour creer la liste ch du niveau 1
+    :param jeu: configuration du jeu
+    :return:
+    """
+    for j in jeu.murs:
+        pyCrate.creer_image(jeu.can, j.get_x(), j.get_y(), jeu.liste_image[0])
+    for j in jeu.cibles:
+        pyCrate.creer_image(jeu.can, j.get_x(), j.get_y(), jeu.liste_image[1])
+    for j in jeu.caisses:
+        pyCrate.creer_image(jeu.can, j.get_x(), j.get_y(), jeu.liste_image[2])
+        for c in jeu.cibles:
+            if j == c:
+                pyCrate.creer_image(jeu.can, j.get_x(), j.get_y(), jeu.liste_image[3])
+    for j in jeu.joueur:
+        pyCrate.creer_image(jeu.can, j.get_x(), j.get_y(), jeu.liste_image[4])
+        for c in jeu.cibles:
             if j.get_x() == c.get_x() and j.get_y() == c.get_y():
-                pyCrate.creer_image(can, j.get_x(), j.get_y(), liste_image[5])
+                pyCrate.creer_image(jeu.can, j.get_x(), j.get_y(), jeu.liste_image[5])
 
 
-def charger_niveau(path, fenetre, can, liste_image):
-    global started, joueur, caisses, cibles, murs, niveau_en_cours, temps_initial
-    tmp_str = path.split("level")[1]
-    niveau_en_cours = tmp_str.split(".")[0]
-    can.delete(ALL)
-    joueur, caisses, cibles, murs = [], [], [], []
-    pyCrate.charger_niveau(joueur, caisses, cibles, murs, path)
-    affichage_jeu(can, liste_image)
-    can.bind_all("<Right>", lambda event, f=fenetre: droite(f))
-    can.bind_all("<Left>", lambda event, f=fenetre: gauche(f))
-    can.bind_all("<Up>", lambda event, f=fenetre: haut(f))
-    can.bind_all("<Down>", lambda event, f=fenetre: bas(f))
-    can.pack()
-    refresh_score()
-    started = True
-    temps_initial = time.time()
+def charger_niveau(jeu: Jeu, path: str):
+    """
+    charge la configuration du jeu pour un niveau
+    :param jeu: configuration du jeu
+    :param path: fichier avec la configuration du niveau
+    :return:
+    """
+    jeu.can.delete(ALL)
+    jeu.refresh()
+
+    pyCrate.charger_niveau(jeu.joueur, jeu.caisses, jeu.cibles, jeu.murs, path)
+    affichage_jeu(jeu)
+    jeu.can.bind_all("<Right>", lambda event: droite(jeu))
+    jeu.can.bind_all("<Left>", lambda event: gauche(jeu))
+    jeu.can.bind_all("<Up>", lambda event: haut(jeu))
+    jeu.can.bind_all("<Down>", lambda event: bas(jeu))
+    jeu.can.pack()
+
+    tmp_str: str = path.split("level")[1]
+    jeu.niveau_en_cours = int(tmp_str.replace(".txt", ""))
+    jeu.started = True
+    jeu.temps_initial = time.time()
+
+    refresh_score(jeu)
 
 
-# fonction qui creer une fenetre popup
-def PopupAide():
+def popup_aide():
+    """
+    fonction qui creer une fenetre popup
+    :return:
+    """
     popup = Toplevel()
     popup.title("Instructions")
     bouton = Button(popup, text="Fermer", command=popup.withdraw)
     bouton.pack()
 
 
-## Vérifier la commande
-def load_levels(filemenu, fenetre, can, liste_image):
-    files = [f for f in listdir(level_folder_path) if f.endswith('.txt')]
-    cpt_niveau = 1
-    for file in files:
-        tag = "Niveau " + str(cpt_niveau)
-        path = level_folder_path + "\\" + file
-        filemenu.add_command(label=tag, command=lambda x=path: charger_niveau(x, fenetre, can, liste_image))
-        cpt_niveau += 1
+def load_levels(jeu: Jeu, filemenu: Menu):
+    """
+    charge les niveaux
+    :param jeu: configuration du jeu
+    :param filemenu: menu pour charger les niveaux
+    :return:
+    """
+    files: list = [f for f in os.listdir(LEVEL_FOLDER_PATH) if f.endswith(".txt")]
+    for i in range(1, len(files)+1):
+        tag: str = "Niveau %s" % i
+        path: str = os.path.join(LEVEL_FOLDER_PATH, "level%d.txt" % i)
+        filemenu.add_command(label=tag, command=lambda x=path: charger_niveau(jeu, x))
 
 
-def init_menu(fenetre, can, liste_image):
-    menu = Menu(fenetre)
+def init_menu(jeu: Jeu, fenetre: Tk):
+    menu: Menu = Menu(fenetre)
     fenetre.config(menu=menu)
-    filemenu = Menu(menu)
+    filemenu: Menu = Menu(menu)
     menu.add_cascade(label="Choix du niveau", menu=filemenu)
-    load_levels(filemenu, fenetre, can, liste_image)
-    menu.add_command(label="Exit", command=lambda fenetre=fenetre: update_score_file(fenetre))
+    load_levels(jeu, filemenu)
+    menu.add_command(label="Exit", command=lambda: update_score_file(jeu, fenetre))
 
 
-def check_status(liste_image, can):
-    global started
-    if pyCrate.jeu_en_cours(caisses, cibles) and started == True:
-        affichage_jeu(can, liste_image)
-        save_score(temps_initial, nb_coups)
-        can.bind_all("<Right>")
-        can.bind_all("<Left>")
-        can.bind_all("<Up>")
-        can.bind_all("<Down>")
-        started = False
+def check_status(jeu: Jeu):
+    if pyCrate.jeu_en_cours(jeu.caisses, jeu.cibles) and jeu.started:
+        affichage_jeu(jeu)
+        save_score(jeu)
+        jeu.can.bind_all("<Right>")
+        jeu.can.bind_all("<Left>")
+        jeu.can.bind_all("<Up>")
+        jeu.can.bind_all("<Down>")
+        jeu.started = False
     else:
-        affichage_jeu(can, liste_image)
+        affichage_jeu(jeu)
 
 
-def mouvement(direction):
-    pyCrate.mouvement(direction, can, joueur, murs, caisses, liste_image)
+def mouvement(jeu: Jeu, direction: str):
+    if jeu.started:
+        pyCrate.mouvement(direction, jeu.can, jeu.joueur, jeu.murs, jeu.caisses, jeu.liste_image)
+    jeu.nb_coups += 1
+    check_status(jeu)
 
 
-def droite(fenetre):
-    global nb_coups
-    if started:
-        mouvement("droite")
-    nb_coups += 1
-    check_status(liste_image, can)
+def droite(jeu: Jeu):
+    mouvement(jeu, "droite")
 
 
-def gauche(fenetre):
-    global nb_coups
-    if started:
-        mouvement("gauche")
-    nb_coups += 1
-    check_status(liste_image, can)
+def gauche(jeu: Jeu):
+    mouvement(jeu, "gauche")
 
 
-def haut(fenetre):
-    global nb_coups
-    if started:
-        mouvement("haut")
-    nb_coups += 1
-    check_status(liste_image, can)
+def haut(jeu: Jeu):
+    mouvement(jeu, "haut")
 
 
-def bas(fenetre):
-    global nb_coups
-    if started:
-        mouvement("bas")
-    nb_coups += 1
-    check_status(liste_image, can)
+def bas(jeu: Jeu):
+    mouvement(jeu, "bas")
 
 
-def load_scores():
-    global scores_file_path
-    pyCrate.chargement_score(scores_file_path, dict_scores)
+def load_scores(jeu: Jeu):
+    pyCrate.chargement_score(SCORE_FILE_PATH, jeu.dict_scores)
 
 
-def refresh_score():
-    score_affichage = pyCrate.maj_score(niveau_en_cours, dict_scores)
-    score_label.config(text=score_affichage)
+def refresh_score(jeu: Jeu):
+    score_affichage = pyCrate.maj_score(jeu.niveau_en_cours, jeu.dict_scores)
+    jeu.score_label.config(text=score_affichage)
 
 
-def save_score(temps_initial, nb_coups):
-    score = pyCrate.enregistre_score(temps_initial, nb_coups, SCORE_BASE, dict_scores, niveau_en_cours)
-    for i in range(0, len(dict_scores[niveau_en_cours]) - 1):
-        if int(score) > float(dict_scores[niveau_en_cours][i]):
-            tmp = dict_scores[niveau_en_cours][i]
-            dict_scores[niveau_en_cours][i] = score
+def save_score(jeu: Jeu):
+    score = pyCrate.enregistre_score(jeu.temps_initial, jeu.nb_coups, SCORE_BASE, jeu.dict_scores, jeu.niveau_en_cours)
+    if jeu.niveau_en_cours not in jeu.dict_scores:
+        jeu.dict_scores[jeu.niveau_en_cours] = [0]*10
+
+    for i in range(0, len(jeu.dict_scores[jeu.niveau_en_cours])):
+        if score > jeu.dict_scores[jeu.niveau_en_cours][i]:
+            tmp = jeu.dict_scores[jeu.niveau_en_cours][i]
+            jeu.dict_scores[jeu.niveau_en_cours][i] = score
             score = tmp
-    refresh_score()
+    refresh_score(jeu)
 
 
-def update_score_file(fenetre):
-    pyCrate.update_score_file(scores_file_path, dict_scores)
+def update_score_file(jeu: Jeu, fenetre: Tk):
+    pyCrate.update_score_file(SCORE_FILE_PATH, jeu.dict_scores)
     quitter(fenetre)
 
 
-fenetre = Tk()
-fenetre.title('Projet 631-1')
-# Référence sur les images (obligatoire avec tkinter)
+def simulate():
+    title: str = "Projet 631-1"
 
-img_mur = PhotoImage(file='.\\images\\wall.gif')
-img_cible = PhotoImage(file=".\\images\\dock.gif")
-img_boite = PhotoImage(file=".\\images\\box.gif")
-img_boite_correcte = PhotoImage(file=".\\images\\box_docked.gif")
-img_joueur = PhotoImage(file=".\\images\\worker.gif")
-img_joueur_cible = PhotoImage(file=".\\images\\worker_dock.gif")
-img_sol = PhotoImage(file=".\\images\\floor.gif")
-liste_image.append(img_mur)
-liste_image.append(img_cible)
-liste_image.append(img_boite)
-liste_image.append(img_boite_correcte)
-liste_image.append(img_joueur)
-liste_image.append(img_joueur_cible)
-liste_image.append(img_sol)
-can = Canvas(fenetre, height=760, width=1000, bg="#fedcb2")
-can.pack(side=LEFT)
-score_label = Label(fenetre, anchor="nw", font="Cooper", justify="left", bg="#d8c09e", fg="black",
-                    text=load_scores(), height=21, width=38)
-score_label.pack()
-init_menu(fenetre, can, liste_image)
+    fenetre: Tk = Tk()
+    fenetre.title(title)
 
-t = Label(fenetre, anchor="s", font="Cooper", bg="#d8c09e", fg="black", pady="20",
-          text="_______________________________________\n\nRègles du jeu \n \n Déplacez le personnage à l'aide des flèches \n du clavier afin de placer toutes les caisses\n sur les emplacements.",
-          height=18, width=38)
-t.pack(side=LEFT)
-fenetre.resizable(height=0, width=0)
-fenetre.protocol("WM_DELETE_WINDOW", lambda fenetre=fenetre: update_score_file(fenetre))
-fenetre.mainloop()
+    # Référence sur les images (obligatoire avec tkinter)
+
+    img_mur: PhotoImage = PhotoImage(file=os.path.abspath("./images/wall.gif"))
+    img_cible: PhotoImage = PhotoImage(file=os.path.abspath("./images/dock.gif"))
+    img_boite: PhotoImage = PhotoImage(file=os.path.abspath("./images/box.gif"))
+    img_boite_correcte: PhotoImage = PhotoImage(file=os.path.abspath("./images/box_docked.gif"))
+    img_joueur: PhotoImage = PhotoImage(file=os.path.abspath("./images/worker.gif"))
+    img_joueur_cible: PhotoImage = PhotoImage(file=os.path.abspath("./images/worker_dock.gif"))
+    img_sol: PhotoImage = PhotoImage(file=os.path.abspath("./images/floor.gif"))
+
+    jeu: Jeu = Jeu()
+
+    jeu.liste_image.append(img_mur)
+    jeu.liste_image.append(img_cible)
+    jeu.liste_image.append(img_boite)
+    jeu.liste_image.append(img_boite_correcte)
+    jeu.liste_image.append(img_joueur)
+    jeu.liste_image.append(img_joueur_cible)
+    jeu.liste_image.append(img_sol)
+
+    can: Canvas = Canvas(fenetre, height=760, width=1000, bg="#fedcb2")
+    can.pack(side=LEFT)
+    jeu.can = can
+
+    score_label: Label = Label(fenetre, anchor="nw", font="Cooper", justify="left", bg="#d8c09e", fg="black",
+                               text=load_scores(jeu), height=21, width=38)
+    score_label.pack()
+    jeu.score_label = score_label
+
+    init_menu(jeu, fenetre)
+
+    _help: str = """_______________________________________
+    
+    Règles du jeu
+    
+    Déplacez le personnage à l'aide des flèches 
+    du clavier afin de placer toutes les caisses
+    sur les emplacements."""
+
+    t: Label = Label(fenetre, anchor="s", font="Cooper", bg="#d8c09e", fg="black", pady="20",
+                     text=_help,
+                     height=18, width=38)
+    t.pack(side=LEFT)
+    fenetre.resizable(height=0, width=0)
+    fenetre.protocol("WM_DELETE_WINDOW", lambda: update_score_file(jeu, fenetre))
+    fenetre.mainloop()
